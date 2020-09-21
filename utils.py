@@ -17,6 +17,9 @@ HEADER_CONTENT_TYPE = 'Content-Type'
 APP_KEY = 'z3v5yqkbv8v30'
 APP_SECRET = 'vRSwt4t69JFg'
 
+IM_HOST = 'http://api.cn.ronghub.com'
+RTC_HOST = 'http://rtcapi-cn.ronghub.com'
+
 
 def _http_header():
     nonce = str(random.randint(0, 1000000000))
@@ -38,11 +41,12 @@ def render(params, format_str):
     return data
 
 
-def http_post(url, data):
+def http_post(url, data, is_rtc=False):
     data = data.encode('utf8')
     headers = _http_header()
+    host = RTC_HOST if is_rtc else IM_HOST
     try:
-        req = request.Request('http://api.cn.ronghub.com' + url, headers=headers, data=data)
+        req = request.Request(host + url, headers=headers, data=data)
         rep_bytes = request.urlopen(req).read()
         rep = json.loads(rep_bytes.decode('utf8'))
         code = 200

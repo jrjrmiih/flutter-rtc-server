@@ -1,3 +1,4 @@
+import json
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -28,7 +29,6 @@ def create_live_room(room_id):
     room_dict[room_id] = {
         'user_id': params['user_id'],
         'mcu_url': params['mcu_url'],
-        'create_time': int(time.time())
     }
     return 'OK', 200
 
@@ -41,19 +41,20 @@ def remove_live_room(room_id):
 
 @app.route('/live_room', methods=['GET'])
 def get_live_room():
-    print(room_dict)
+    print(json.dumps(room_dict))
     return 'OK', 200
 
 
 def destroy_invalid_room():
     for key in list(room_dict.keys()):
-        delta = int(time.time()) - room_dict[key]['create_time']
-        if delta > 5 * 60:
+        body = '{"roomId":"' + key + '"}'
+        resp, code = utils.http_post('/rtc/room/query.json', body, is_rtc=True)
+        if code == 200 and resp['code'] == 40003:
             del room_dict[key]
 
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(destroy_invalid_room, 'cron', second='0-59/5')
+    scheduler.add_job(destroy_invalid_room, 'cron', minute='0-59/5')
     scheduler.start()
     app.run(host='0.0.0.0', port=8080)
