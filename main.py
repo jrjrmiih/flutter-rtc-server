@@ -77,7 +77,7 @@ def ping_user(user_id):
 @app.route('/live_room/<room_id>', methods=['POST'])
 def create_live_room(room_id):
     """ 创建直播房间 """
-    if room_dict[room_id] is not None:
+    if room_id in room_dict.keys():
         return 'Room has already been created!', 409
     params = request.get_json()
     room_dict[room_id] = {
