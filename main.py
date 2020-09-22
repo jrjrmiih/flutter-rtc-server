@@ -41,8 +41,7 @@ def remove_live_room(room_id):
 
 @app.route('/live_room', methods=['GET'])
 def get_live_room():
-    print(json.dumps(room_dict))
-    return 'OK', 200
+    return json.dumps(room_dict), 200
 
 
 def destroy_invalid_room():
