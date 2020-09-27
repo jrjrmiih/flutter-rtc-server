@@ -19,9 +19,10 @@ def index():
 @app.route("/avatar/<image_id>.png")
 def get_avatar(image_id):
     """ 获取指定序号的用户头像，image_id: [0-19] """
-    if image_id < 0 or image_id > 19:
+    image = int(image_id)
+    if image < 0 or image > 19:
         return 'Image id should be between 0-19!', 400
-    with open(r'./avatar/{}.png'.format(image_id), 'rb') as f:
+    with open(r'avatar/{:0>2d}.png'.format(image), 'rb') as f:
         return Response(f.read(), mimetype="image/png")
 
 
