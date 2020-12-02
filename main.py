@@ -7,7 +7,8 @@ from flask import Flask, request, Response
 import utils
 
 app = Flask(__name__)
-room_dict = {}
+live_room_dict = {}
+audio_room_dict = {}
 user_dict = {}
 
 
@@ -19,10 +20,9 @@ def index():
 @app.route("/avatar/<image_id>.png")
 def get_avatar(image_id):
     """ 获取指定序号的用户头像，image_id: [0-19] """
-    image = int(image_id)
-    if image < 0 or image > 19:
+    if image_id < 0 or image_id > 19:
         return 'Image id should be between 0-19!', 400
-    with open(r'avatar/{:0>2d}.png'.format(image), 'rb') as f:
+    with open(r'./avatar/{}.png'.format(image_id), 'rb') as f:
         return Response(f.read(), mimetype="image/png")
 
 
@@ -78,10 +78,10 @@ def ping_user(user_id):
 @app.route('/live_room/<room_id>', methods=['POST'])
 def create_live_room(room_id):
     """ 创建直播房间 """
-    if room_id in room_dict.keys():
+    if room_id in live_room_dict.keys():
         return 'Room has already been created!', 409
     params = request.get_json()
-    room_dict[room_id] = {
+    live_room_dict[room_id] = {
         'user_id': params['user_id'],
         'mcu_url': params['mcu_url'],
     }
@@ -91,14 +91,40 @@ def create_live_room(room_id):
 @app.route('/live_room/<room_id>', methods=['DELETE'])
 def remove_live_room(room_id):
     """ 销毁直播房间 """
-    room_dict.pop(room_id)
+    live_room_dict.pop(room_id)
     return 'OK', 200
 
 
 @app.route('/live_room')
 def get_live_room_list():
     """ 获取直播房间列表 """
-    return json.dumps(room_dict), 200
+    return json.dumps(live_room_dict), 200
+
+
+@app.route('/audio_room/<room_id>', methods=['POST'])
+def create_audio_room(room_id):
+    """ 创建语聊房间 """
+    if room_id in audio_room_dict.keys():
+        return 'Room has already been created!', 409
+    params = request.get_json()
+    audio_room_dict[room_id] = {
+        'user_id': params['user_id'],
+        'mcu_url': params['mcu_url'],
+    }
+    return 'OK', 200
+
+
+@app.route('/audio_room/<room_id>', methods=['DELETE'])
+def remove_audio_room(room_id):
+    """ 销毁语聊房间 """
+    audio_room_dict.pop(room_id)
+    return 'OK', 200
+
+
+@app.route('/audio_room')
+def get_audio_room_list():
+    """ 获取语聊房间列表 """
+    return json.dumps(audio_room_dict), 200
 
 
 def destroy_invalid_user():
@@ -110,11 +136,16 @@ def destroy_invalid_user():
 
 
 def destroy_invalid_room():
-    for key in list(room_dict.keys()):
+    for key in list(live_room_dict.keys()):
         body = '{"roomId":"' + key + '"}'
         resp, code = utils.http_post('/rtc/room/query.json', body, is_rtc=True)
         if code == 200 and resp['code'] == 40003:
-            del room_dict[key]
+            del live_room_dict[key]
+    for key in list(audio_room_dict.keys()):
+        body = '{"roomId":"' + key + '"}'
+        resp, code = utils.http_post('/rtc/room/query.json', body, is_rtc=True)
+        if code == 200 and resp['code'] == 40003:
+            del audio_room_dict[key]
 
 
 if __name__ == '__main__':
