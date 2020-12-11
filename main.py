@@ -84,7 +84,7 @@ def create_live_room(room_id):
     params = request.get_json()
     live_room_dict[room_id] = {
         'user_id': params['user_id'],
-        'user_name': params.setdefault('user_name', default='Unknown'),
+        'user_name': params.setdefault('user_name', 'Unknown'),
         'mcu_url': params['mcu_url'],
     }
     return 'OK', 200
@@ -111,7 +111,7 @@ def create_audio_room(room_id):
     params = request.get_json()
     audio_room_dict[room_id] = {
         'user_id': params['user_id'],
-        'user_name': params.setdefault('user_name', default='Unknown'),
+        'user_name': params.setdefault('user_name', 'Unknown'),
         'mcu_url': params['mcu_url'],
     }
     return 'OK', 200
