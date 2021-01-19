@@ -14,18 +14,22 @@ HEADER_TIMESTAMP = 'Timestamp'
 HEADER_SIGNATURE = 'Signature'
 HEADER_CONTENT_TYPE = 'Content-Type'
 
-APP_KEY = 'z3v5yqkbv8v30'
-APP_SECRET = 'vRSwt4t69JFg'
+APP_SECRET = {
+    'z3v5yqkbv8v30' : 'vRSwt4t69JFg',
+}
+
+IM_HOST = 'http://api.cn.ronghub.com'
+RTC_HOST = 'http://rtcapi-cn.ronghub.com'
 
 
-def _http_header():
+def _http_header(key):
     nonce = str(random.randint(0, 1000000000))
     timestamp = str(int(time.time()))
-    sha1 = (APP_SECRET + nonce + timestamp).encode('utf8')
+    sha1 = (APP_SECRET[key] + nonce + timestamp).encode('utf8')
     signature = hashlib.sha1(sha1).hexdigest()
     return {
         HEADER_CONTENT_TYPE: 'application/x-www-form-urlencoded',
-        HEADER_APP_KEY: APP_KEY,
+        HEADER_APP_KEY: key,
         HEADER_NONCE: nonce,
         HEADER_TIMESTAMP: timestamp,
         HEADER_SIGNATURE: signature
@@ -38,11 +42,14 @@ def render(params, format_str):
     return data
 
 
-def http_post(url, data):
+def http_post(url, key, data, is_rtc=False):
+    if key not in APP_SECRET.keys():
+        return '{"code":-1, "reason":"Wrong app key."}', 400
+    headers = _http_header(key)
     data = data.encode('utf8')
-    headers = _http_header()
+    host = RTC_HOST if is_rtc else IM_HOST
     try:
-        req = request.Request('http://api.cn.ronghub.com' + url, headers=headers, data=data)
+        req = request.Request(host + url, headers=headers, data=data)
         rep_bytes = request.urlopen(req).read()
         rep = json.loads(rep_bytes.decode('utf8'))
         code = 200
