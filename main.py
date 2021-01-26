@@ -51,7 +51,7 @@ def create_live_room(room_id):
 @app.route('/live_room/<room_id>', methods=['DELETE'])
 def remove_live_room(room_id):
     """ 销毁直播房间 """
-    params = request.get_json()
+    params = request.args
     key = params['key']
     if key not in live_room_dict.keys():
         return '{"code":-1, "reason":"Wrong app key."}', 400
@@ -62,7 +62,7 @@ def remove_live_room(room_id):
 @app.route('/live_room')
 def get_live_room_list():
     """ 获取直播房间列表 """
-    params = request.get_json()
+    params = request.args
     key = params['key']
     if key not in live_room_dict.keys():
         return '{"code":-1, "reason":"Wrong app key."}', 400
@@ -89,7 +89,7 @@ def create_audio_room(room_id):
 @app.route('/audio_room/<room_id>', methods=['DELETE'])
 def remove_audio_room(room_id):
     """ 销毁语聊房间 """
-    params = request.get_json()
+    params = request.args
     key = params['key']
     if key not in audio_room_dict.keys():
         return '{"code":-1, "reason":"Wrong app key."}', 400
@@ -100,7 +100,7 @@ def remove_audio_room(room_id):
 @app.route('/audio_room')
 def get_audio_room_list():
     """ 获取语聊房间列表 """
-    params = request.get_json()
+    params = request.args
     key = params['key']
     if key not in audio_room_dict.keys():
         return '{"code":-1, "reason":"Wrong app key."}', 400
