@@ -7,8 +7,11 @@ from flask import Flask, request, Response
 import utils
 
 app = Flask(__name__)
+
 live_room_dict = {}
 audio_room_dict = {}
+
+test_room_dict = {}
 
 
 @app.route('/ver')
@@ -107,19 +110,65 @@ def get_audio_room_list():
     return json.dumps(audio_room_dict[key]), 200
 
 
+@app.route('/test_room/<room_id>', methods=['POST'])
+def create_test_room(room_id):
+     """ 创建测试DEMO房间 """
+    params = request.get_json()
+    key = params['key']
+    if key not in test_room_dict.keys():
+        test_room_dict[key] = {}
+    if room_id in test_room_dict[key].keys():
+        return 'Room has already been created!', 409
+    test_room_dict[key][room_id] = {
+        'user_id': params['user_id'],
+        'user_name': params.setdefault('user_name', 'Unknown'),
+        'mcu_url': params['mcu_url'],
+    }
+    return 'OK', 200
+
+
+@app.route('/test_room/<room_id>', methods=['DELETE'])
+def remove_audio_room(room_id):
+    """ 销毁测试DEMO房间 """
+    params = request.args
+    key = params['key']
+    if key not in test_room_dict.keys():
+        return '{"code":-1, "reason":"Wrong app key."}', 400
+    test_room_dict[key].pop(room_id)
+    return 'OK', 200
+
+
+@app.route('/test_room/<room_id>')
+def get_test_room(room_id):
+    """ 获取测试DEMO房间信息 """
+    params = request.args
+    key = params['key']
+    if key not in test_room_dict.keys():
+        return '{"code":-1, "reason":"Wrong app key."}', 400
+    if room_id not in test_room_dict[key].keys():
+        return 'Room is not exist!', 410
+    return json.dumps(test_room_dict[key][room_id]), 200
+
+
 def destroy_invalid_room():
     for app in list(live_room_dict.keys()):
         for key in list(live_room_dict[app].keys()):
             body = '{"roomId":"' + key + '"}'
-            resp, code = utils.http_post('/rtc/room/query.json', app, body, is_rtc=True)
+            resp, code = utils.http_post('/rtc/room/query.json', app, body)
             if code == 200 and resp['code'] == 40003:
                 del live_room_dict[app][key]
     for app in list(audio_room_dict.keys()):
         for key in list(audio_room_dict[app].keys()):
             body = '{"roomId":"' + key + '"}'
-            resp, code = utils.http_post('/rtc/room/query.json', app, body, is_rtc=True)
+            resp, code = utils.http_post('/rtc/room/query.json', app, body)
             if code == 200 and resp['code'] == 40003:
                 del audio_room_dict[app][key]
+    for app in list(test_room_dict.keys()):
+        for key in list(test_room_dict[app].keys()):
+            body = '{"roomId":"' + key + '"}'
+            resp, code = utils.http_post('/rtc/room/query.json', app, body)
+            if code == 200 and resp['code'] == 40003:
+                del test_room_dict[app][key]
 
 
 if __name__ == '__main__':

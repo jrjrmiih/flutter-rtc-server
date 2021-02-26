@@ -15,17 +15,19 @@ HEADER_SIGNATURE = 'Signature'
 HEADER_CONTENT_TYPE = 'Content-Type'
 
 APP_SECRET = {
-    'z3v5yqkbv8v30' : 'vRSwt4t69JFg',
+    'e0x9wycfx7flq' : ['UfmrYyG1lpE', 'http://apixq.rongcloud.net'],
+    'c9kqb3rdkbb8j' : ['uTNrkYskbNC', 'http://apiserverqa.cn.ronghub.com'],
+    'z3v5yqkbv8v30' : ['vRSwt4t69JFg', 'https://api.cn.ronghub.com'],
+    'qf3d5gbjq962h' : ['4XHbT4dpJs', 'https://api.cn.ronghub.com'],
+    'qd46yzrfq04ef' : ['TMr47yh4WxM5', 'http://apiserverqa.cn.ronghub.com'],
+    'y745wfm8yhb3v' : ['CshYsnmzTGfR', 'http://api.cn.ronghub.com'],
 }
-
-IM_HOST = 'http://api.cn.ronghub.com'
-RTC_HOST = 'http://rtcapi-cn.ronghub.com'
 
 
 def _http_header(key):
     nonce = str(random.randint(0, 1000000000))
     timestamp = str(int(time.time()))
-    sha1 = (APP_SECRET[key] + nonce + timestamp).encode('utf8')
+    sha1 = (APP_SECRET[key][0] + nonce + timestamp).encode('utf8')
     signature = hashlib.sha1(sha1).hexdigest()
     return {
         HEADER_CONTENT_TYPE: 'application/x-www-form-urlencoded',
@@ -42,12 +44,12 @@ def render(params, format_str):
     return data
 
 
-def http_post(url, key, data, is_rtc=False):
+def http_post(url, key, data):
     if key not in APP_SECRET.keys():
         return '{"code":-1, "reason":"Wrong app key."}', 400
     headers = _http_header(key)
     data = data.encode('utf8')
-    host = RTC_HOST if is_rtc else IM_HOST
+    host = APP_SECRET[key][1]
     try:
         req = request.Request(host + url, headers=headers, data=data)
         rep_bytes = request.urlopen(req).read()
